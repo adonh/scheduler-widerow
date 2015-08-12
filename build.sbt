@@ -2,7 +2,7 @@ organization := "com.pagerduty"
 
 name := "widerow"
 
-scalaVersion := "2.10.5"
+scalaVersion := "2.10.4"
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.4" % Test,
