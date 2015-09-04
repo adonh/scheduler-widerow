@@ -35,14 +35,20 @@ trait WideRowDriver[RowKey, ColName, ColValue] {
    * Performs batch updates in the following order: first drop, then remove, then insert.
    *
    * @param rowKey rowKey indicates the row we are updating.
-   * @param drop indicates if the row should be dropped before other operations.
    * @param remove a list of column names to delete.
    * @param insert a list of columns to insert.
    */
   def update(
       rowKey: RowKey,
-      drop: Boolean,
       remove: Iterable[ColName],
       insert: Iterable[EntryColumn[ColName, ColValue]])
   : Future[Unit]
+
+  /**
+   * Drops the target row.
+   *
+   * @param rowKey target row key
+   * @return unit future
+   */
+  def deleteRow(rowKey: RowKey): Future[Unit]
 }

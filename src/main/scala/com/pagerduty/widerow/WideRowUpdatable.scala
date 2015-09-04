@@ -15,7 +15,6 @@ trait WideRowUpdatable[RowKey, ColName, ColValue] {
    * Allows to manipulate index.
    */
   class BatchUpdater(val rowKey: RowKey) {
-    protected var dropRow = false
     protected var removes = Set.empty[ColName]
     protected var inserts = Map.empty[ColName, EntryColumn[ColName, ColValue]]
 
@@ -32,34 +31,21 @@ trait WideRowUpdatable[RowKey, ColName, ColValue] {
      * Queues a single column to be removed from the index.
      */
     def queueRemove(colName: ColName) :this.type = {
-      if (!dropRow) removes += colName
+      removes += colName
       inserts -= colName
-      this
-    }
-
-    /**
-     * Queues an entire index row to be discarded.
-     */
-    def queueDrop() :this.type = {
-      dropRow = true
-      removes = Set.empty
-      inserts = Map.empty
       this
     }
 
     /**
      * Perform queued operations asynchronously. Once invoked, updater resets to blank state.
      */
-    def asyncApply() :Future[Unit] = {
-      val future = driver.update(rowKey, dropRow, removes, inserts.values)
-      dropRow = false
+    def executeAsync() :Future[Unit] = {
+      val future = driver.update(rowKey, removes, inserts.values)
       removes = Set.empty
       inserts = Map.empty
       future
     }
-    def applyAndWait() {
-      Await.result(asyncApply(), Duration.Inf)
-    }
   }
-  def apply(rowKey: RowKey) :BatchUpdater = new BatchUpdater(rowKey)
+  def apply(rowKey: RowKey): BatchUpdater = new BatchUpdater(rowKey)
+  def deleteRow(rowKey: RowKey): Future[Unit] = driver.deleteRow(rowKey)
 }
