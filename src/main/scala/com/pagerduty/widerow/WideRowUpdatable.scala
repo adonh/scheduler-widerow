@@ -1,7 +1,5 @@
 package com.pagerduty.widerow
 
-import com.pagerduty.widerow.chain.Chainable
-
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 
