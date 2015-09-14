@@ -72,10 +72,13 @@ class TestDriver[RowKey, ColName : Ordering, ColValue](
 
   def update(
       rowKey: RowKey,
-      drop: Boolean,
       delete: Iterable[ColName],
       insert: Iterable[EntryColumn[ColName, ColValue]])
   :Future[Unit] = {
+    throw new UnsupportedOperationException("Not implemented.")
+  }
+
+  def deleteRow(rowKey: RowKey): Future[Unit] = {
     throw new UnsupportedOperationException("Not implemented.")
   }
 }

@@ -1,7 +1,8 @@
 package com.pagerduty.widerow
 
-import org.scalamock.FunctionAdapter4
-import scala.concurrent.Future
+import org.scalamock.FunctionAdapter3
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.Duration
 
 
 class WideRowUpdatableSpec extends WideRowSpec {
@@ -11,10 +12,10 @@ class WideRowUpdatableSpec extends WideRowSpec {
    * matcher.
    */
   def args[R, C, V](
-      rowKey: R, drop: Boolean, remove: Iterable[C], insert: Iterable[EntryColumn[C, V]])
-  :FunctionAdapter4[R, Boolean, Iterable[C], Iterable[EntryColumn[C, V]], Boolean] =
+      rowKey: R, remove: Iterable[C], insert: Iterable[EntryColumn[C, V]])
+  :FunctionAdapter3[R, Iterable[C], Iterable[EntryColumn[C, V]], Boolean] =
   where {
-    case (`rowKey`, `drop`, argRemove, argInsert) =>
+    case (`rowKey`, argRemove, argInsert) =>
       argRemove.toSet == remove.toSet && argInsert.toSet == insert.toSet
     case _ =>
       false
@@ -42,22 +43,20 @@ class WideRowUpdatableSpec extends WideRowSpec {
           val inserts = Set(makeColumns("basic", 1).head)
           val removes = Set.empty[String]
           batchUpdater.queueInsert(inserts.head)
-          (driver.update _).expects(args(rowKey, false, removes, inserts)).returns(FutureUnit)
-          batchUpdater.applyAndWait()
+          (driver.update _).expects(args(rowKey, removes, inserts)).returns(FutureUnit)
+          Await.result(batchUpdater.executeAsync(), Duration.Inf)
         }
         "removing one element" in {
           val inserts = Set.empty[EntryColumn[String, Int]]
           val removes = Set(makeColumns("basic", 1).map(_.name).head)
           batchUpdater.queueRemove(removes.head)
-          (driver.update _).expects(args(rowKey, false, removes, inserts)).returns(FutureUnit)
-          batchUpdater.applyAndWait()
+          (driver.update _).expects(args(rowKey, removes, inserts)).returns(FutureUnit)
+          Await.result(batchUpdater.executeAsync(), Duration.Inf)
         }
         "drop row" in {
-          val inserts = Set.empty[EntryColumn[String, Int]]
-          val removes = Set.empty[String]
-          batchUpdater.queueDrop()
-          (driver.update _).expects(args(rowKey, true, removes, inserts)).returns(FutureUnit)
-          batchUpdater.applyAndWait()
+          (driver.deleteRow _).expects(rowKey).returns(FutureUnit)
+          val future = map.deleteRow(rowKey)
+          Await.result(future, Duration.Inf)
         }
       }
 
@@ -72,38 +71,7 @@ class WideRowUpdatableSpec extends WideRowSpec {
         columns.map(_.name)
       }
 
-      "when dropping row" in {
-        var inserts = Map.empty[String, EntryColumn[String, Int]]
-        val removes = Set.empty[String]
-
-        // Append stuff that will be dropped.
-        insert(batchUpdater, "dropped", 5)
-        remove(batchUpdater, "irrelevant", 5)
-        batchUpdater.queueDrop()
-
-        // Insert followed by remove.
-        insert(batchUpdater, "insDel", 5)
-        remove(batchUpdater, "insDel", 5)
-
-        // Remove followed by insert.
-        remove(batchUpdater, "delIns", 5)
-        inserts ++= insert(batchUpdater, "delIns", 5)
-
-        // Insert followed by remove followed by insert.
-        insert(batchUpdater, "insDelIns", 5)
-        remove(batchUpdater, "insDelIns", 5)
-        inserts ++= insert(batchUpdater, "insDelIns", 5)
-
-        //Remove followed by insert followed by remove.
-        remove(batchUpdater, "delInsDel", 5)
-        insert(batchUpdater, "delInsDel", 5)
-        remove(batchUpdater, "delInsDel", 5)
-
-        (driver.update _).expects(args(rowKey, true, removes, inserts.values)).returns(FutureUnit)
-        batchUpdater.applyAndWait()
-      }
-
-      "when not dropping row" in {
+      "when performing multiple operations" in {
         var inserts = Map.empty[String, EntryColumn[String, Int]]
         var removes = Set.empty[String]
 
@@ -125,8 +93,8 @@ class WideRowUpdatableSpec extends WideRowSpec {
         insert(batchUpdater, "delInsDel", 5)
         removes ++= remove(batchUpdater, "delInsDel", 5)
 
-        (driver.update _).expects(args(rowKey, false, removes, inserts.values)).returns(FutureUnit)
-        batchUpdater.applyAndWait()
+        (driver.update _).expects(args(rowKey, removes, inserts.values)).returns(FutureUnit)
+        Await.result(batchUpdater.executeAsync(), Duration.Inf)
       }
     }
 
@@ -152,38 +120,7 @@ class WideRowUpdatableSpec extends WideRowSpec {
       val rowKey = 100
       val batchUpdater = set(rowKey)
 
-      "when dropping row" in {
-        var inserts = Map.empty[String, EntryColumn[String, Array[Byte]]]
-        var removes = Set.empty[String]
-
-        // Append stuff that will be dropped.
-        insert(batchUpdater, "dropped", 5)
-        remove(batchUpdater, "irrelevant", 5)
-        batchUpdater.queueDrop()
-
-        // Insert followed by remove.
-        insert(batchUpdater, "insDel", 5)
-        remove(batchUpdater, "insDel", 5)
-
-        // Remove followed by insert.
-        remove(batchUpdater, "delIns", 5)
-        inserts ++= insert(batchUpdater, "delIns", 5)
-
-        // Insert followed by remove followed by insert.
-        insert(batchUpdater, "insDelIns", 5)
-        remove(batchUpdater, "insDelIns", 5)
-        inserts ++= insert(batchUpdater, "insDelIns", 5)
-
-        //Remove followed by insert followed by remove.
-        remove(batchUpdater, "delInsDel", 5)
-        insert(batchUpdater, "delInsDel", 5)
-        remove(batchUpdater, "delInsDel", 5)
-
-        (driver.update _).expects(args(rowKey, true, removes, inserts.values)).returns(FutureUnit)
-        batchUpdater.applyAndWait()
-      }
-
-      "when not dropping row" in {
+      "when performing multiple operations" in {
         var inserts = Map.empty[String, EntryColumn[String, Array[Byte]]]
         var removes = Set.empty[String]
 
@@ -205,8 +142,8 @@ class WideRowUpdatableSpec extends WideRowSpec {
         insert(batchUpdater, "delInsDel", 5)
         removes ++= remove(batchUpdater, "delInsDel", 5)
 
-        (driver.update _).expects(args(rowKey, false, removes, inserts.values)).returns(FutureUnit)
-        batchUpdater.applyAndWait()
+        (driver.update _).expects(args(rowKey, removes, inserts.values)).returns(FutureUnit)
+        Await.result(batchUpdater.executeAsync(), Duration.Inf)
       }
     }
   }
