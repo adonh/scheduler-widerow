@@ -110,11 +110,19 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
    * have one-to-one mapping between indexed elements and query results. When limit is not defined,
    * this method will simply forward the call to the faster get() method.
    *
+   * When doing reverse query, the columns are visited starting from upper bound and moving
+   * towards lower bound. For example, to query the latest elements of time series, newest first:
+   * {{{
+   *   timeSeries.limGet(Some(10), None, Seq(rowKey), Bound.None, Bound.None, reverse = true)
+   * }}}
+   *
+   * Order of operations: {{{
    * page = load index page
    * mapping = transformations applied to page results
    *
    *                     nextPage                 nextPage
    * --page--> --mapping--> | --page--> --mapping--> |...
+   * }}}
    *
    * Example: {{{
    *   index.map(_.name)
@@ -122,18 +130,12 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
    *     .limGet(Some(10), rowKeys) // Transformations are applied after loading each page.
    * }}}
    *
-   * When doing reverse query, the columns are visited starting from upper bound and moving
-   * towards lower bound. For example, to query the latest elements of time series, newest first:
-   * {{{
-   *   timeSeries.limGet(Some(10), None, Seq(rowKey), Bound.None, Bound.None, reverse = true)
-   * }}}
-   *
    * @param limit maximum number of elements that will be returned
    * @param colLimit maximum number of columns that may be loaded
-   * @param rowKeys rows to query, in order
+   * @param rowKeys rows to query, always in ascending order
    * @param lowerBound lower bound based on absolute ordering of WideRow column names
    * @param upperBound upper bound based on absolute ordering of WideRow column names
-   * @param reverse true to reverse result order, false otherwise
+   * @param reverse true to reverse query direction and the order of results, false otherwise
    */
   def limGet(
       limit: Option[Int],
@@ -191,6 +193,13 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
    * Fast query that loads a new index page while asynchronously applying transformation to the
    * previous page.
    *
+   * When doing reverse query, the columns are visited starting from upper bound and moving
+   * towards lower bound. For example, to query the latest elements of time series, newest first:
+   * {{{
+   *   timeSeries.get(Some(10), Seq(rowKey), Bound.None, Bound.None, reverse = true)
+   * }}}
+   *
+   * Order of operations: {{{
    * page = load index page
    * mapping = transformations applied to page results
    *
@@ -198,24 +207,19 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
    * -----page----> | +-----page----> | +-----page----> |...
    *                   \              |  \              |
    *                    +--mapping--> |   +--mapping--> |...
+   * }}}
    *
    * Example: {{{
    *   index.map(_.name)
    *     .pageMap(dao.asyncFind(_)) // Will be executed in parallel to page fetching.
-   *     .query(rowKeys)
-   * }}}
-   *
-   * When doing reverse query, the columns are visited starting from upper bound and moving
-   * towards lower bound. For example, to query the latest elements of time series, newest first:
-   * {{{
-   *   timeSeries.get(Some(10), Seq(rowKey), Bound.None, Bound.None, reverse = true)
+   *     .get(rowKeys)
    * }}}
    *
    * @param colLimit maximum number of columns that can be loaded
-   * @param rowKeys rows to query, in order
+   * @param rowKeys rows to query, always in ascending order
    * @param lowerBound lower bound based on absolute ordering of WideRow column names
    * @param upperBound upper bound based on absolute ordering of WideRow column names
-   * @param reverse true to reverse result order, false otherwise
+   * @param reverse true to reverse query direction and the order of results, false otherwise
    */
   def get(
       colLimit: Option[Int],
