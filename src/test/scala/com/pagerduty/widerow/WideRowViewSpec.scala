@@ -48,10 +48,13 @@ class WideRowViewSpec extends WideRowSpec {
 
       def update(
           rowKey: String,
-          drop: Boolean,
           remove: Iterable[Int],
           insert: Iterable[EntryColumn[Int, Array[Byte]]])
       : Future[Unit] = {
+        throw new UnsupportedOperationException("Not implemented.")
+      }
+
+      override def deleteRow(rowKey: String): Future[Unit] = {
         throw new UnsupportedOperationException("Not implemented.")
       }
     }
