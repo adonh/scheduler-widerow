@@ -42,25 +42,6 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
   implicit def executor: ExecutionContextExecutor = driver.executor
 
   /**
-   * Example:
-   * {{{
-   * def instrument(methodName: String): (Future[T] => Future[T]) = {
-   *   val start = System.currentTimeMillis()
-   *   (future: Future[T]) => {
-   *     future.onComplete { _ =>
-   *       val duration = System.currentTimeMillis() - start
-   *       Stats.recordMetrics(methodName, duration)
-   *     }
-   *     future
-   *   }
-   * }
-   * }}}
-   */
-  protected def instrument[T](methodName: String): (Future[T] => Future[T]) = {
-    identity
-  }
-
-  /**
    * Returns the raw map without any transformations.
    */
   def source: WideRowIndex[RowKey, ColName, ColValue] = new WideRowIndex(driver, pageSize)
@@ -98,11 +79,9 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
       reverse: Boolean = false
     )(predicate: QueryResult => Boolean)
   :Future[Option[QueryResult]] = {
-    val intercept = instrument[Option[QueryResult]]("find")
-    intercept(
-      filter(predicate)
-        .limGet(Some(1), colLimit, rowKeys, lowerBound, upperBound, reverse)
-        .map(_.headOption))
+    filter(predicate)
+      .limGet(Some(1), colLimit, rowKeys, lowerBound, upperBound, reverse)
+      .map(_.headOption)
   }
 
   /**
@@ -146,13 +125,12 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
       reverse: Boolean = false)
   :Future[IndexedSeq[QueryResult]] = {
     if (!limit.isDefined) return get(colLimit, rowKeys, lowerBound, upperBound, reverse)
-    val intercept = instrument[IndexedSeq[QueryResult]]("limGet")
 
     require(limit.get >= 0, "limit must be greater than or equal to zero.")
     if(colLimit.isDefined)
       require(colLimit.get >= 0, "colLimit must be greater than or equal to zero.")
 
-    if (rowKeys.isEmpty) return intercept(Future.successful(IndexedSeq.empty))
+    if (rowKeys.isEmpty) return Future.successful(IndexedSeq.empty)
 
     val (from, to) = if (reverse) (upperBound, lowerBound) else (lowerBound, upperBound)
     val queryRowKeys = if (reverse) rowKeys.reverse else rowKeys
@@ -186,7 +164,7 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
       }
     }
 
-    intercept(rec(IndexedSeq.empty, page0, this.ops).map(_._1))
+    rec(IndexedSeq.empty, page0, this.ops).map(_._1)
   }
 
   /**
@@ -228,11 +206,10 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
       upperBound: Bound[ColName] = Bound.None,
       reverse: Boolean = false)
   :Future[IndexedSeq[QueryResult]] = {
-    val intercept = instrument[IndexedSeq[QueryResult]]("get")
     if(colLimit.isDefined)
       require(colLimit.get >= 0, "colLimit must be greater than or equal to zero.")
 
-    if (rowKeys.isEmpty) return intercept(Future.successful(IndexedSeq.empty))
+    if (rowKeys.isEmpty) return Future.successful(IndexedSeq.empty)
 
     val (from, to) = if (reverse) (upperBound, lowerBound) else (lowerBound, upperBound)
     val queryRowKeys = if (reverse) rowKeys.reverse else rowKeys
@@ -273,6 +250,6 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
       }
     }
 
-    intercept(rec(IndexedSeq.empty, page0, this.ops).map(_._1))
+    rec(IndexedSeq.empty, page0, this.ops).map(_._1)
   }
 }
