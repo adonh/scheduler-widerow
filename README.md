@@ -11,7 +11,7 @@ WideRow is a high level API for dealing with Cassandra wide-rows as if they were
 Key features:
  * Chaining of multiple rows into one logical sequence
  * Supports collection methods like `map()`, `flatMap()`, `filter()`, `collect()`, and `group()`
- * Concervative querying to minimize data read
+ * Conservative querying to minimize data reads
  * Fast querying to fetch data concurrently
 
 ## Installation
