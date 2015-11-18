@@ -14,8 +14,12 @@ Key features:
 
 ## Installation
 
-This library is published to the Sonatype OSS Maven Repository, which is configured in SBT by default. To add the dependency to your SBT build file:
+This library is published to the Sonatype OSS Maven Repository:
+```scala
+resolvers += Resolver.sonatypeRepo("public")
+```
 
+Adding the dependency to your SBT build file:
 ```scala
 libraryDependencies += "com.pagerduty" %% "widerow" % "0.4.4"
 ```
