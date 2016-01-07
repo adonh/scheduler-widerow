@@ -1,4 +1,4 @@
-# widerow
+# widerow [![Build Status](https://travis-ci.org/PagerDuty/widerow.svg)](https://travis-ci.org/PagerDuty/widerow)
 
 This is an open source project!
 
