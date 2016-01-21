@@ -8,7 +8,7 @@ licenses += ("BSD New", url("https://opensource.org/licenses/BSD-3-Clause"))
 publishMavenStyle := true
 
 pomExtra := (
-  <url>https://github.com/PagerDuty/entity-mapper</url>
+  <url>https://github.com/PagerDuty/widerow</url>
   <licenses>
     <license>
       <name>BSD New</name>
@@ -17,8 +17,8 @@ pomExtra := (
     </license>
   </licenses>
   <scm>
-    <url>git@github.com:PagerDuty/entity-mapper.git</url>
-    <connection>scm:git:git@github.com:PagerDuty/entity-mapper.git</connection>
+    <url>git@github.com:PagerDuty/widerow.git</url>
+    <connection>scm:git:git@github.com:PagerDuty/widerow.git</connection>
   </scm>
   <developers>
     <developer>
