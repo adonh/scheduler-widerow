@@ -1,3 +1,8 @@
+0.5.0
+========
+
+  * Automated Bintray release and git tagging with Travis
+
 0.4.4
 ========
 
