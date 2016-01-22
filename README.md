@@ -21,7 +21,7 @@ resolvers += "bintray-pagerduty-oss-maven" at "https://dl.bintray.com/pagerduty/
 
 Adding the dependency to your SBT build file:
 ```scala
-libraryDependencies += "com.pagerduty" %% "widerow" % "0.5.0"
+libraryDependencies += "com.pagerduty" %% "widerow" % "0.5.1"
 ```
 
 ## Contact
