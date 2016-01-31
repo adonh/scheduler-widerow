@@ -27,7 +27,7 @@
 
 package com.pagerduty.widerow
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.{ ExecutionContextExecutor, Future }
 
 /**
  * WideRowDriver is responsible for fetching raw data and performing batched update operations.
@@ -51,12 +51,12 @@ trait WideRowDriver[RowKey, ColName, ColValue] {
    * @param limit maximum number of elements that can be returned by this query.
    */
   def fetchData(
-      rowKey: RowKey,
-      ascending: Boolean,
-      from: Option[ColName],
-      to: Option[ColName],
-      limit: Int)
-  : Future[IndexedSeq[Entry[RowKey, ColName, ColValue]]]
+    rowKey: RowKey,
+    ascending: Boolean,
+    from: Option[ColName],
+    to: Option[ColName],
+    limit: Int
+  ): Future[IndexedSeq[Entry[RowKey, ColName, ColValue]]]
 
   /**
    * Performs batch updates in the following order: first drop, then remove, then insert.
@@ -66,10 +66,10 @@ trait WideRowDriver[RowKey, ColName, ColValue] {
    * @param insert a list of columns to insert.
    */
   def update(
-      rowKey: RowKey,
-      remove: Iterable[ColName],
-      insert: Iterable[EntryColumn[ColName, ColValue]])
-  : Future[Unit]
+    rowKey: RowKey,
+    remove: Iterable[ColName],
+    insert: Iterable[EntryColumn[ColName, ColValue]]
+  ): Future[Unit]
 
   /**
    * Drops the target row.

@@ -27,8 +27,7 @@
 
 package com.pagerduty.widerow
 
-import com.pagerduty.widerow.chain.{Source, Chainable}
-
+import com.pagerduty.widerow.chain.{ Source, Chainable }
 
 /**
  * Wide row index with column names and no column values.
@@ -41,12 +40,13 @@ import com.pagerduty.widerow.chain.{Source, Chainable}
  *                 expected number of results to the query.
  */
 class WideRowSet[RowKey, ColName](
-    driver: WideRowDriver[RowKey, ColName, Array[Byte]],
-    pageSize: Int)
-  extends WideRowView[RowKey, ColName, Array[Byte], ColName](
-      driver, Source[RowKey, ColName, Array[Byte]](driver.executor).map(_.column.name), pageSize)
-  with WideRowUpdatable[RowKey, ColName, Array[Byte]]
-{
+  driver: WideRowDriver[RowKey, ColName, Array[Byte]],
+  pageSize: Int
+)
+    extends WideRowView[RowKey, ColName, Array[Byte], ColName](
+      driver, Source[RowKey, ColName, Array[Byte]](driver.executor).map(_.column.name), pageSize
+    )
+    with WideRowUpdatable[RowKey, ColName, Array[Byte]] {
   protected def emptyColValue = WideRowSet.EmptyColValue
 
   /**
@@ -57,13 +57,12 @@ class WideRowSet[RowKey, ColName](
     /**
      * Queues a single column to be inserted into the index.
      */
-    def queueInsert(colName: ColName) :this.type = {
+    def queueInsert(colName: ColName): this.type = {
       queueInsert(EntryColumn(colName, emptyColValue))
     }
   }
   override def apply(rowKey: RowKey) = new BatchUpdater(rowKey)
 }
-
 
 object WideRowSet {
   final val EmptyColValue = Array.empty[Byte]

@@ -28,9 +28,8 @@
 package com.pagerduty.widerow.chain
 
 import scala.collection.GenTraversableOnce
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.{ ExecutionContextExecutor, Future }
 import scala.language.higherKinds
-
 
 /**
  * WideRow API allows to chain operation that can work directly on index elements or transform
@@ -52,7 +51,7 @@ trait Chainable[Result, +Chain[_]] {
 
   /**
    * Chains page mapping to the current operation.
-   * 
+   *
    * @param mapping page mapping
    * @tparam R result type
    * @return new operation equivalent to `this() then mapping()`
@@ -61,18 +60,17 @@ trait Chainable[Result, +Chain[_]] {
 
   /**
    * Groups elements.
-   * 
+   *
    * @param size the group size
    * @return a new operation that groups results
    */
-  protected def group(size: Int) :Chain[IndexedSeq[Result]]
-
+  protected def group(size: Int): Chain[IndexedSeq[Result]]
 
   /**
    * Similar to `seq.distinct()`.
    * Keep the first occurrence of each element.
    */
-  def distinct() :Chain[Result] = {
+  def distinct(): Chain[Result] = {
     val set = scala.collection.mutable.Set.empty[Result]
 
     chain(seq => Future.successful {
@@ -89,35 +87,35 @@ trait Chainable[Result, +Chain[_]] {
   /**
    * Similar to `seq.filter()`.
    */
-  def filter(filter: Result => Boolean) :Chain[Result] = {
+  def filter(filter: Result => Boolean): Chain[Result] = {
     chain(seq => Future.successful(seq.filter(filter)))
   }
 
   /**
    * Similar to `seq.filterNot()`.
    */
-  def filterNot(filter: Result => Boolean) :Chain[Result] = {
+  def filterNot(filter: Result => Boolean): Chain[Result] = {
     chain(seq => Future.successful(seq.filterNot(filter)))
   }
 
   /**
    * Similar to `seq.colect()`.
    */
-  def collect[R](collector: PartialFunction[Result, R]) :Chain[R] = {
+  def collect[R](collector: PartialFunction[Result, R]): Chain[R] = {
     chain(seq => Future.successful(seq.collect(collector)))
   }
 
   /**
    * Similar to `seq.map()`.
    */
-  def map[R](mapping: Result => R) :Chain[R] = {
+  def map[R](mapping: Result => R): Chain[R] = {
     chain(seq => Future.successful(seq.map(mapping)))
   }
 
   /**
    * Similar to `seq.flatMap()`.
    */
-  def flatMap[R](mapping: Result => scala.collection.GenTraversableOnce[R]) :Chain[R] = {
+  def flatMap[R](mapping: Result => scala.collection.GenTraversableOnce[R]): Chain[R] = {
     chain(seq => Future.successful(seq.flatMap(mapping)))
   }
 
@@ -129,7 +127,7 @@ trait Chainable[Result, +Chain[_]] {
    * {{{col.grouped(n).flatten().pageMap(query(_)}}} combination can be used to enforce batch size
    * on subsequent queries.
    */
-  def grouped(size: Int) :Chain[IndexedSeq[Result]] = {
+  def grouped(size: Int): Chain[IndexedSeq[Result]] = {
     group(size)
   }
 
@@ -148,7 +146,7 @@ trait Chainable[Result, +Chain[_]] {
   /**
    * Similar to map(), but handles Future as mapping return type.
    */
-  def asyncMap[R](mapping: Result => Future[R]) :Chain[R] = {
+  def asyncMap[R](mapping: Result => Future[R]): Chain[R] = {
     chain(seq => {
       val init = Future.successful(IndexedSeq.empty[R])
       seq.foldLeft(init) { (future, result) =>
@@ -160,7 +158,7 @@ trait Chainable[Result, +Chain[_]] {
   /**
    * Maps a sequence of elements asynchronously using underlying pages directly.
    */
-  def pageMap[R](mapping: IndexedSeq[Result] => Future[Iterable[R]]) :Chain[R] = {
+  def pageMap[R](mapping: IndexedSeq[Result] => Future[Iterable[R]]): Chain[R] = {
     chain(mapping(_).map(_.toIndexedSeq))
   }
 }

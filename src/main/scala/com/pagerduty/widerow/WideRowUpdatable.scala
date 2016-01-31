@@ -27,9 +27,8 @@
 
 package com.pagerduty.widerow
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
-
 
 /**
  * Common interface for mutating WideRow indexes.
@@ -48,7 +47,7 @@ trait WideRowUpdatable[RowKey, ColName, ColValue] {
     /**
      * Queues a single column to be inserted into the index.
      */
-    def queueInsert(column: EntryColumn[ColName, ColValue]) :this.type = {
+    def queueInsert(column: EntryColumn[ColName, ColValue]): this.type = {
       removes -= column.name
       inserts += ((column.name, column))
       this
@@ -57,7 +56,7 @@ trait WideRowUpdatable[RowKey, ColName, ColValue] {
     /**
      * Queues a single column to be removed from the index.
      */
-    def queueRemove(colName: ColName) :this.type = {
+    def queueRemove(colName: ColName): this.type = {
       removes += colName
       inserts -= colName
       this
@@ -66,7 +65,7 @@ trait WideRowUpdatable[RowKey, ColName, ColValue] {
     /**
      * Perform queued operations asynchronously. Once invoked, updater resets to blank state.
      */
-    def executeAsync() :Future[Unit] = {
+    def executeAsync(): Future[Unit] = {
       val future = driver.update(rowKey, removes, inserts.values)
       removes = Set.empty
       inserts = Map.empty
