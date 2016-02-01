@@ -27,11 +27,10 @@
 
 package com.pagerduty.widerow
 
-import com.pagerduty.widerow.chain.{QueryPage, OpChain, Chainable}
+import com.pagerduty.widerow.chain.{ QueryPage, OpChain, Chainable }
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ExecutionContextExecutor, Await, Future}
-
+import scala.concurrent.{ ExecutionContextExecutor, Await, Future }
 
 /**
  * WideRowView allows chaining of operations and can perform sequential queries with
@@ -43,13 +42,12 @@ import scala.concurrent.{ExecutionContextExecutor, Await, Future}
  *                 on the order of 100, but the best size is likely approximately equal to the
  *                 expected number of results to the query.
  */
-class WideRowView[RowKey, ColName, ColValue, QueryResult] (
-    protected val driver: WideRowDriver[RowKey, ColName, ColValue],
-    protected val ops: OpChain[QueryResult],
-    protected val pageSize: Int)
-  extends Chainable[
-    QueryResult,
-    /* Chainable takes a higher kinded type Chain[_]. This means that Chain is a type
+class WideRowView[RowKey, ColName, ColValue, QueryResult](
+  protected val driver: WideRowDriver[RowKey, ColName, ColValue],
+  protected val ops: OpChain[QueryResult],
+  protected val pageSize: Int
+)
+    extends Chainable[QueryResult, /* Chainable takes a higher kinded type Chain[_]. This means that Chain is a type
      * constructor that takes type arguments. This allows us to create parametrised type later on in
      * the code.
      * Consider: Chainable.map[R](..) :Chain[R].
@@ -61,9 +59,7 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
      * partially applied type as Partial[R] = WideRowView[RowKey, ColName, ColValue, R].
      * Finally, we extract the partially applied type by using type projection #Partial on the
      * anonymous type.
-     */
-    ({type Partial[R] = WideRowView[RowKey, ColName, ColValue, R]})#Partial]
-{
+     */ ({ type Partial[R] = WideRowView[RowKey, ColName, ColValue, R] })#Partial] {
   require(pageSize > 0, "pageSize must be greater that zero.")
 
   implicit def executor: ExecutionContextExecutor = driver.executor
@@ -80,10 +76,9 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
    *                 on the order of 100, but the best size is likely approximately equal to the
    *                 expected number of results to the query.
    */
-  def withPageSize(pageSize: Int) :WideRowView[RowKey, ColName, ColValue, QueryResult] = {
+  def withPageSize(pageSize: Int): WideRowView[RowKey, ColName, ColValue, QueryResult] = {
     new WideRowView(driver, ops, pageSize)
   }
-
 
   protected def chain[R](mapping: IndexedSeq[QueryResult] => Future[IndexedSeq[R]]) = {
     new WideRowView(driver, ops.chain(mapping), pageSize)
@@ -99,13 +94,12 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
    * when the first element matches the predicate.
    */
   def find(
-      colLimit: Option[Int],
-      rowKeys: Seq[RowKey],
-      lowerBound: Bound[ColName] = Bound.None,
-      upperBound: Bound[ColName] = Bound.None,
-      reverse: Boolean = false
-    )(predicate: QueryResult => Boolean)
-  :Future[Option[QueryResult]] = {
+    colLimit: Option[Int],
+    rowKeys: Seq[RowKey],
+    lowerBound: Bound[ColName] = Bound.None,
+    upperBound: Bound[ColName] = Bound.None,
+    reverse: Boolean = false
+  )(predicate: QueryResult => Boolean): Future[Option[QueryResult]] = {
     filter(predicate)
       .limGet(Some(1), colLimit, rowKeys, lowerBound, upperBound, reverse)
       .map(_.headOption)
@@ -144,17 +138,17 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
    * @param reverse true to reverse query direction and the order of results, false otherwise
    */
   def limGet(
-      limit: Option[Int],
-      colLimit: Option[Int],
-      rowKeys: Seq[RowKey],
-      lowerBound: Bound[ColName] = Bound.None,
-      upperBound: Bound[ColName] = Bound.None,
-      reverse: Boolean = false)
-  :Future[IndexedSeq[QueryResult]] = {
+    limit: Option[Int],
+    colLimit: Option[Int],
+    rowKeys: Seq[RowKey],
+    lowerBound: Bound[ColName] = Bound.None,
+    upperBound: Bound[ColName] = Bound.None,
+    reverse: Boolean = false
+  ): Future[IndexedSeq[QueryResult]] = {
     if (!limit.isDefined) return get(colLimit, rowKeys, lowerBound, upperBound, reverse)
 
     require(limit.get >= 0, "limit must be greater than or equal to zero.")
-    if(colLimit.isDefined)
+    if (colLimit.isDefined)
       require(colLimit.get >= 0, "colLimit must be greater than or equal to zero.")
 
     if (rowKeys.isEmpty) return Future.successful(IndexedSeq.empty)
@@ -163,9 +157,10 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
     val queryRowKeys = if (reverse) rowKeys.reverse else rowKeys
 
     val page0 = new QueryPage(
-        driver, pageSize,
-        queryRowKeys.toList, !reverse, from, to, colLimit,
-        IndexedSeq.empty, None, 0, true)
+      driver, pageSize,
+      queryRowKeys.toList, !reverse, from, to, colLimit,
+      IndexedSeq.empty, None, 0, true
+    )
 
     type Results = IndexedSeq[QueryResult]
     type Page = QueryPage[RowKey, ColName, ColValue]
@@ -174,8 +169,7 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
     // Recursive function that returns a future with accumulated values.
     // Note that result types match the function argument types.
     // Strictly obeys all limits, sequential execution.
-    def rec(results: Results, lastPage: Page, lastOps: Ops)
-    :Future[(Results, Page, Ops)] = {
+    def rec(results: Results, lastPage: Page, lastOps: Ops): Future[(Results, Page, Ops)] = {
       lastPage.nextPage().flatMap { page =>
         lastOps.next(page.results).flatMap { ops =>
           ops.apply().flatMap { transformedResults =>
@@ -227,13 +221,13 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
    * @param reverse true to reverse query direction and the order of results, false otherwise
    */
   def get(
-      colLimit: Option[Int],
-      rowKeys: Seq[RowKey],
-      lowerBound: Bound[ColName] = Bound.None,
-      upperBound: Bound[ColName] = Bound.None,
-      reverse: Boolean = false)
-  :Future[IndexedSeq[QueryResult]] = {
-    if(colLimit.isDefined)
+    colLimit: Option[Int],
+    rowKeys: Seq[RowKey],
+    lowerBound: Bound[ColName] = Bound.None,
+    upperBound: Bound[ColName] = Bound.None,
+    reverse: Boolean = false
+  ): Future[IndexedSeq[QueryResult]] = {
+    if (colLimit.isDefined)
       require(colLimit.get >= 0, "colLimit must be greater than or equal to zero.")
 
     if (rowKeys.isEmpty) return Future.successful(IndexedSeq.empty)
@@ -242,9 +236,10 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
     val queryRowKeys = if (reverse) rowKeys.reverse else rowKeys
 
     val page0 = new QueryPage(
-        driver, pageSize,
-        queryRowKeys.toList, !reverse, from, to, colLimit,
-        IndexedSeq.empty, None, 0, true)
+      driver, pageSize,
+      queryRowKeys.toList, !reverse, from, to, colLimit,
+      IndexedSeq.empty, None, 0, true
+    )
 
     type Results = IndexedSeq[QueryResult]
     type Page = QueryPage[RowKey, ColName, ColValue]
@@ -253,27 +248,27 @@ class WideRowView[RowKey, ColName, ColValue, QueryResult] (
     // Recursive function that returns a future with accumulated values.
     // Note that result types match the function argument types.
     // Always loads one page ahead, fetches pages in parallel to page operations.
-    def rec(results: Results, lastPage: Page, lastOps: Ops)
-    :Future[(Results, Page, Ops)] = {
+    def rec(results: Results, lastPage: Page, lastOps: Ops): Future[(Results, Page, Ops)] = {
       val opsFuture = lastOps.next(lastPage.results)
       val resultsFuture = opsFuture.flatMap(ops => ops.apply())
       val pageFuture = lastPage.nextPage()
 
-      resultsFuture.zip(pageFuture).flatMap { case (transformedResults, page) =>
-        // opsFuture has to be resolved to get thrasformedResults.
-        val ops = Await.result(opsFuture, Duration.Inf)
-        val combined = results ++ transformedResults
+      resultsFuture.zip(pageFuture).flatMap {
+        case (transformedResults, page) =>
+          // opsFuture has to be resolved to get thrasformedResults.
+          val ops = Await.result(opsFuture, Duration.Inf)
+          val combined = results ++ transformedResults
 
-        if (!page.hasNextPage)
-          ops.next(page.results).flatMap { finalOps =>
-            finalOps.apply().flatMap { finalResults => // apply() then drain()
-              finalOps.drain().map { drainedResults =>
-                (combined ++ finalResults ++ drainedResults, page, finalOps)
+          if (!page.hasNextPage)
+            ops.next(page.results).flatMap { finalOps =>
+              finalOps.apply().flatMap { finalResults => // apply() then drain()
+                finalOps.drain().map { drainedResults =>
+                  (combined ++ finalResults ++ drainedResults, page, finalOps)
+                }
               }
             }
-          }
-        else
-          rec(combined, page, ops)
+          else
+            rec(combined, page, ops)
       }
     }
 

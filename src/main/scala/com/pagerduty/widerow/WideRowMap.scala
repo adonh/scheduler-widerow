@@ -27,8 +27,7 @@
 
 package com.pagerduty.widerow
 
-import com.pagerduty.widerow.chain.{Source, Chainable}
-
+import com.pagerduty.widerow.chain.{ Source, Chainable }
 
 /**
  * The most basic WideRow map. Extend this class to tap into the WideRow API.
@@ -40,8 +39,10 @@ import com.pagerduty.widerow.chain.{Source, Chainable}
  *                 expected number of results to the query.
  */
 class WideRowMap[RowKey, ColName, ColValue](
-    driver: WideRowDriver[RowKey, ColName, ColValue],
-    pageSize: Int)
-  extends WideRowView[RowKey, ColName, ColValue, EntryColumn[ColName, ColValue]](
-      driver, Source[RowKey, ColName, ColValue](driver.executor).map(_.column), pageSize)
-  with WideRowUpdatable[RowKey, ColName, ColValue]
+  driver: WideRowDriver[RowKey, ColName, ColValue],
+  pageSize: Int
+)
+    extends WideRowView[RowKey, ColName, ColValue, EntryColumn[ColName, ColValue]](
+      driver, Source[RowKey, ColName, ColValue](driver.executor).map(_.column), pageSize
+    )
+    with WideRowUpdatable[RowKey, ColName, ColValue]

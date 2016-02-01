@@ -62,10 +62,10 @@ final case class EntryColumn[ColName, ColValue](name: ColName, value: ColValue) 
    */
   // Custom copy method to accommodate the extra ttlSeconds parameter.
   def copy(
-      name: ColName = this.name,
-      value: ColValue = this.value,
-      ttlSeconds: Option[Int] = this.ttlSeconds)
-  : EntryColumn[ColName, ColValue] = {
+    name: ColName = this.name,
+    value: ColValue = this.value,
+    ttlSeconds: Option[Int] = this.ttlSeconds
+  ): EntryColumn[ColName, ColValue] = {
     new EntryColumn(name, value, ttlSeconds)
   }
 
@@ -76,8 +76,7 @@ final case class EntryColumn[ColName, ColValue](name: ColName, value: ColValue) 
 }
 
 object EntryColumn {
-  def apply[ColName, ColValue](name: ColName, value: ColValue, ttlSeconds: Option[Int])
-  : EntryColumn[ColName, ColValue] = {
+  def apply[ColName, ColValue](name: ColName, value: ColValue, ttlSeconds: Option[Int]): EntryColumn[ColName, ColValue] = {
     new EntryColumn(name, value, ttlSeconds)
   }
 }

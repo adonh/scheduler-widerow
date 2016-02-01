@@ -28,27 +28,26 @@
 package com.pagerduty.widerow.chain
 
 import com.pagerduty.widerow.Entry
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.{ ExecutionContextExecutor, Future }
 
 /**
  * Inserting this operation into the chain will force all preceding operations into sequential
  * part of the transformation.
  */
 private[widerow] class Accumulator[Source](
-    val wrapped: OpChain[Source],
-    val batchSize: Int,
-    val pending: IndexedSeq[IndexedSeq[Source]],
-    val unused: IndexedSeq[Source])
-  extends OpChain[IndexedSeq[Source]]
-{
+  val wrapped: OpChain[Source],
+  val batchSize: Int,
+  val pending: IndexedSeq[IndexedSeq[Source]],
+  val unused: IndexedSeq[Source]
+)
+    extends OpChain[IndexedSeq[Source]] {
   implicit val executor: ExecutionContextExecutor = wrapped.executor
 
   def this(wrapped: OpChain[Source], batchSize: Int) = {
     this(wrapped, batchSize, IndexedSeq.empty, IndexedSeq.empty)
   }
 
-  private[this] def getPendingAndUnused(srcResults: IndexedSeq[Source])
-  :(IndexedSeq[IndexedSeq[Source]], IndexedSeq[Source]) = {
+  private[this] def getPendingAndUnused(srcResults: IndexedSeq[Source]): (IndexedSeq[IndexedSeq[Source]], IndexedSeq[Source]) = {
     val batches = srcResults.grouped(batchSize).toIndexedSeq
 
     if (!batches.isEmpty && batches.last.size < batchSize)

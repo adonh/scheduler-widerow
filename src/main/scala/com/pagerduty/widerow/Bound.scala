@@ -27,7 +27,6 @@
 
 package com.pagerduty.widerow
 
-
 /**
  * Allows to specify inclusive/exclusive bounds.
  */
@@ -63,15 +62,14 @@ object Bound {
     override def value: Nothing = throw new NoSuchElementException("Bound.None.value")
     override def inclusive: Boolean = false
     override def valueOption: Option[Nothing] = scala.None
-    override def toString() :String = "Bound.None"
+    override def toString(): String = "Bound.None"
   }
 
   /**
    * Some bound.
    */
   final case class Some[T] private[Bound] (val value: T, val inclusive: Boolean)
-    extends Bound[T]
-  {
+      extends Bound[T] {
     override def isDefined: Boolean = true
     override def valueOption: Option[T] = scala.Some(value)
     override def toString(): String = {
@@ -94,5 +92,5 @@ object Bound {
   /**
    * Typed None.
    */
-  def none[T] :Bound[T] = None
+  def none[T]: Bound[T] = None
 }

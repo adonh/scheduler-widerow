@@ -29,7 +29,7 @@ package com.pagerduty.widerow.chain
 
 import com.pagerduty.widerow.Entry
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.{ ExecutionContextExecutor, Future }
 
 /**
  * Root operation that starts the chain, can be treated as
@@ -38,10 +38,10 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
  * See [[Chainable]] for more details.
  */
 class Source[RowKey, ColName, ColValue] private[widerow] (
-    private val currentPage: IndexedSeq[Entry[RowKey, ColName, ColValue]],
-    val executor: ExecutionContextExecutor)
-  extends OpChain[Entry[RowKey, ColName, ColValue]]
-{
+  private val currentPage: IndexedSeq[Entry[RowKey, ColName, ColValue]],
+  val executor: ExecutionContextExecutor
+)
+    extends OpChain[Entry[RowKey, ColName, ColValue]] {
   private[widerow] def apply() = Future.successful(currentPage)
   private[widerow] def drain() = Future.successful(IndexedSeq.empty)
 
