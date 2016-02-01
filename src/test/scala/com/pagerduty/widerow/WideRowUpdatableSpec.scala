@@ -28,9 +28,8 @@
 package com.pagerduty.widerow
 
 import org.scalamock.FunctionAdapter3
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
-
 
 class WideRowUpdatableSpec extends WideRowSpec {
 
@@ -39,14 +38,14 @@ class WideRowUpdatableSpec extends WideRowSpec {
    * matcher.
    */
   def args[R, C, V](
-      rowKey: R, remove: Iterable[C], insert: Iterable[EntryColumn[C, V]])
-  :FunctionAdapter3[R, Iterable[C], Iterable[EntryColumn[C, V]], Boolean] =
-  where {
-    case (`rowKey`, argRemove, argInsert) =>
-      argRemove.toSet == remove.toSet && argInsert.toSet == insert.toSet
-    case _ =>
-      false
-  }
+    rowKey: R, remove: Iterable[C], insert: Iterable[EntryColumn[C, V]]
+  ): FunctionAdapter3[R, Iterable[C], Iterable[EntryColumn[C, V]], Boolean] =
+    where {
+      case (`rowKey`, argRemove, argInsert) =>
+        argRemove.toSet == remove.toSet && argInsert.toSet == insert.toSet
+      case _ =>
+        false
+    }
 
   "WideRowUpdatable" - {
     "update index correctly" - {
