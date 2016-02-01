@@ -30,9 +30,9 @@ This library is primarily maintained by the Core Team at PagerDuty.
 
 ## Contributing
 
-Contributions are welcome in the form of pull-requests based on the master branch.
+Contributions are welcome in the form of pull-requests based on the master branch. We ask that your changes are covered by unit tests.
 
-We ask that your changes are consistently formatted as the rest of the code in this repository, and also that any changes are covered by unit tests.
+Before opening a pull-request, remember to apply auto-formatting to your code. You trigger auto-formatting by running `sbt test` or `sbt ";compile;test:compile"`.
 
 ## Release
 
