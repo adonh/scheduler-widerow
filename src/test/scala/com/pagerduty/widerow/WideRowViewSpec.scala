@@ -27,11 +27,10 @@
 
 package com.pagerduty.widerow
 
-import java.util.concurrent.{Executor, Executors}
+import java.util.concurrent.{ Executor, Executors }
 
 import scala.concurrent.duration._
 import scala.concurrent._
-
 
 class WideRowViewSpec extends WideRowSpec {
 
@@ -53,17 +52,16 @@ class WideRowViewSpec extends WideRowSpec {
       })
 
       def fetchData(
-          rowKey: String,
-          ascending: Boolean,
-          from: Option[Int],
-          to: Option[Int],
-          limit: Int)
-      : Future[IndexedSeq[Entry[String, Int, Array[Byte]]]] = synchronized {
+        rowKey: String,
+        ascending: Boolean,
+        from: Option[Int],
+        to: Option[Int],
+        limit: Int
+      ): Future[IndexedSeq[Entry[String, Int, Array[Byte]]]] = synchronized {
         val res = Future.successful {
           def columns(data: Seq[Int]) = {
             data.map(colName =>
-              Entry(rowKey, EntryColumn(colName, WideRowSet.EmptyColValue))
-            ).toIndexedSeq
+              Entry(rowKey, EntryColumn(colName, WideRowSet.EmptyColValue))).toIndexedSeq
           }
           if (count == 0) columns(1 to pageSize)
           else columns(count * pageSize to (count + 1) * pageSize)
@@ -74,10 +72,10 @@ class WideRowViewSpec extends WideRowSpec {
       }
 
       def update(
-          rowKey: String,
-          remove: Iterable[Int],
-          insert: Iterable[EntryColumn[Int, Array[Byte]]])
-      : Future[Unit] = {
+        rowKey: String,
+        remove: Iterable[Int],
+        insert: Iterable[EntryColumn[Int, Array[Byte]]]
+      ): Future[Unit] = {
         throw new UnsupportedOperationException("Not implemented.")
       }
 
@@ -181,21 +179,23 @@ class WideRowViewSpec extends WideRowSpec {
           val res = Await.result(
             set.withPageSize(pageSize)
               .get(colLimit, rowKeys, Bound.None, Bound.None, reverse),
-            Duration.Inf)
+            Duration.Inf
+          )
 
           val expected =
             expecting(colLimit, rowKeys, Bound.None, Bound.None, reverse)
-            .map(_ + "xy")
+              .map(_ + "xy")
 
           if (res != expected) {
             dump(received = res, expected = expected)
             fail(
-                "Test failed with" +
+              "Test failed with" +
                 " pageSize=" + pageSize +
                 ", colLimit=" + colLimit +
                 ", rowKeys=" + rowKeys +
                 ", reverse=" + reverse +
-                ".")
+                "."
+            )
           }
           count += 1
         }
@@ -247,7 +247,8 @@ class WideRowViewSpec extends WideRowSpec {
           val res = Await.result(
             set.withPageSize(pageSize)
               .limGet(limit, colLimit, rowKeys, Bound.None, Bound.None, reverse),
-            Duration.Inf)
+            Duration.Inf
+          )
 
           val expectedUnlim =
             expecting(colLimit, rowKeys, Bound.None, Bound.None, reverse)
@@ -258,13 +259,14 @@ class WideRowViewSpec extends WideRowSpec {
           if (res != expected) {
             dump(received = res, expected = expected)
             fail(
-                "Test failed with" +
+              "Test failed with" +
                 " pageSize=" + pageSize +
                 ", limit=" + limit +
                 ", colLimit=" + colLimit +
                 ", rowKeys=" + rowKeys +
                 ", reverse=" + reverse +
-                ".")
+                "."
+            )
           }
           count += 1
         }
@@ -323,20 +325,22 @@ class WideRowViewSpec extends WideRowSpec {
         } {
           val res = Await.result(
             set.withPageSize(pageSize)
-              .get(colLimit, rowKeys, lowerBound, upperBound, reverse), Duration.Inf)
+              .get(colLimit, rowKeys, lowerBound, upperBound, reverse), Duration.Inf
+          )
           val expected = expecting(colLimit, rowKeys, lowerBound, upperBound, reverse)
 
           if (res != expected) {
             dump(received = res, expected = expected)
             fail(
-                "Test failed with" +
+              "Test failed with" +
                 " pageSize=" + pageSize +
                 ", colLimit=" + colLimit +
                 ", rowKeys=" + rowKeys +
                 ", lowerBound=" + lowerBound +
                 ", upperBound=" + upperBound +
                 ", reverse=" + reverse +
-                ".")
+                "."
+            )
           }
           count += 1
         }
@@ -467,9 +471,9 @@ class WideRowViewSpec extends WideRowSpec {
 
     "collect correctly" in {
       val IntStr = """\w(\d*)""".r
-      val view = set.collect{ case IntStr(x) => x.toInt }
+      val view = set.collect { case IntStr(x) => x.toInt }
       val res = Await.result(view.get(None, rowKeys), Duration.Inf)
-      res shouldBe expecting.collect{ case IntStr(x) => x.toInt }
+      res shouldBe expecting.collect { case IntStr(x) => x.toInt }
     }
 
     "map correctly" in {
@@ -511,7 +515,7 @@ class WideRowViewSpec extends WideRowSpec {
 
       val res = Await.result(view.get(None, rowKeys), Duration.Inf)
       res shouldBe expecting.map(_.drop(1).toInt)
-      fullPageCount shouldBe expecting.size/blockSize
+      fullPageCount shouldBe expecting.size / blockSize
     }
   }
 }
