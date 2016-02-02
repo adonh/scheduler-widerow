@@ -32,7 +32,7 @@ This library is primarily maintained by the Core Team at PagerDuty.
 
 Contributions are welcome in the form of pull-requests based on the master branch. We ask that your changes are covered by unit tests.
 
-Before opening a pull-request, remember to apply auto-formatting to your code. You trigger auto-formatting by running `sbt test` or `sbt ";compile;test:compile"`.
+Before opening a pull-request, remember to apply auto-formatting to your code. You can trigger auto-formatting by running `sbt test` or `sbt ";compile;test:compile"`.
 
 ## Release
 
