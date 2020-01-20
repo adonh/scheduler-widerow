@@ -1,3 +1,6 @@
+# Deprecated
+This repository is no longer maintained.
+
 # widerow [![Build Status](https://travis-ci.org/PagerDuty/widerow.svg?branch=master)](https://travis-ci.org/PagerDuty/widerow/builds)
 
 This is an open source project!
